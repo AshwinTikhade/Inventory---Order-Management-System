@@ -220,7 +220,11 @@ def create_order(order_payload: schemas.OrderCreate, db: Session = Depends(get_d
             )
             order_items_to_create.append(order_item)
 
-
+        # 3. Create the Order
+        db_order = models.Order(
+            customer_id=order_payload.customer_id,
+            total_amount=running_total_amount
+        )
         db.add(db_order)
         db.flush()  # Generates order ID
 
