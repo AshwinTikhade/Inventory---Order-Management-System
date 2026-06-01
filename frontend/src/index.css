@@ -4,25 +4,25 @@
   --bg-secondary: #111827;
   --bg-card: rgba(255, 255, 255, 0.03);
   --bg-input: rgba(255, 255, 255, 0.05);
-  
+
   --text-primary: #f9fafb;
   --text-secondary: #9ca3af;
   --text-muted: #6b7280;
-  
+
   --primary: #38bdf8;
   --primary-glow: rgba(56, 189, 248, 0.15);
   --primary-hover: #0ea5e9;
-  
+
   --success: #34d399;
   --success-glow: rgba(52, 211, 153, 0.1);
   --warning: #fbbf24;
   --warning-glow: rgba(251, 191, 36, 0.1);
   --danger: #f87171;
   --danger-glow: rgba(248, 113, 113, 0.1);
-  
+
   --border: rgba(255, 255, 255, 0.08);
   --border-focus: rgba(56, 189, 248, 0.4);
-  
+
   --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -49,13 +49,16 @@ body {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -498,6 +501,11 @@ body {
   font-family: inherit;
 }
 
+.form-input option {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
 .form-input:focus {
   outline: none;
   border-color: var(--border-focus);
@@ -542,6 +550,7 @@ body {
   padding: 0.75rem 0.5rem;
   font-size: 0.8rem;
 }
+
 .order-builder-table td {
   padding: 0.75rem 0.5rem;
   border-bottom: 1px solid var(--border);
@@ -584,13 +593,25 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Responsive Adjustments */
@@ -600,20 +621,25 @@ body {
     padding: 2rem 0.5rem;
     align-items: center;
   }
+
   .logo-text {
     display: none;
   }
+
   .logo-container {
     justify-content: center;
     padding: 0;
   }
+
   .nav-item span {
     display: none;
   }
+
   .nav-item {
     justify-content: center;
     padding: 0.85rem;
   }
+
   .main-content {
     width: calc(100% - 70px);
     padding: 1.5rem;
@@ -624,6 +650,7 @@ body {
   .app-container {
     flex-direction: column;
   }
+
   .sidebar {
     width: 100%;
     flex-direction: row;
@@ -633,23 +660,29 @@ body {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
+
   .logo-container {
     margin-bottom: 0;
   }
+
   .nav-menu {
     flex-direction: row;
     gap: 0.25rem;
   }
+
   .main-content {
     width: 100%;
     padding: 1.25rem;
   }
+
   .controls-row {
     flex-direction: column;
   }
+
   .search-input-wrapper {
     max-width: 100%;
   }
+
   .header-section {
     flex-direction: column;
     align-items: flex-start;
