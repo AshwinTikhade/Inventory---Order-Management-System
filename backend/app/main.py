@@ -170,13 +170,9 @@ def create_order(order_payload: schemas.OrderCreate, db: Session = Depends(get_d
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Customer with ID {order_payload.customer_id} not found."
         )
-
-    # We perform all operations within an atomic block (transaction)
     try:
-        # Pre-fetch and lock products if using Postgres, or standard fetch for SQLite
         product_ids = [item.product_id for item in order_payload.items]
         
-        # Check duplicate product selections in the order payload
         if len(product_ids) != len(set(product_ids)):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -186,7 +182,6 @@ def create_order(order_payload: schemas.OrderCreate, db: Session = Depends(get_d
         products = db.query(models.Product).filter(models.Product.id.in_(product_ids)).all()
         product_map = {p.id: p for p in products}
 
-        # Validate that all requested products exist
         for pid in product_ids:
             if pid not in product_map:
                 raise HTTPException(
@@ -194,7 +189,6 @@ def create_order(order_payload: schemas.OrderCreate, db: Session = Depends(get_d
                     detail=f"Product with ID {pid} not found."
                 )
 
-        # 2. Check inventory levels first before modifying anything
         order_items_to_create = []
         running_total_amount = 0.0
 
@@ -207,12 +201,9 @@ def create_order(order_payload: schemas.OrderCreate, db: Session = Depends(get_d
                     detail=f"Insufficient inventory for product '{product.name}' (SKU: {product.sku}). Requested: {item.quantity}, Available: {product.quantity}."
                 )
             
-            # Deduct stock
             product.quantity -= item.quantity
             item_cost = product.price * item.quantity
             running_total_amount += item_cost
-
-            # Prepare OrderItem
             order_item = models.OrderItem(
                 product_id=product.id,
                 quantity=item.quantity,
@@ -220,20 +211,15 @@ def create_order(order_payload: schemas.OrderCreate, db: Session = Depends(get_d
             )
             order_items_to_create.append(order_item)
 
-        # 3. Create the Order
         db_order = models.Order(
             customer_id=order_payload.customer_id,
             total_amount=running_total_amount
         )
         db.add(db_order)
-        db.flush()  # Generates order ID
-
-        # 4. Associate and save OrderItems
+        db.flush()
         for order_item in order_items_to_create:
             order_item.order_id = db_order.id
             db.add(order_item)
-
-        # 5. Commit all changes atomically
         db.commit()
         db.refresh(db_order)
         return db_order
@@ -264,7 +250,6 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
 
 @app.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_order(order_id: int, db: Session = Depends(get_db)):
-    # Deleting or cancelling an order must restore the products' stock levels!
     db_order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not db_order:
         raise HTTPException(
@@ -273,13 +258,11 @@ def delete_order(order_id: int, db: Session = Depends(get_db)):
         )
 
     try:
-        # Restore stock for each item in the order
         for item in db_order.items:
             product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
             if product:
                 product.quantity += item.quantity
         
-        # Delete order (associated OrderItems will be cascade deleted)
         db.delete(db_order)
         db.commit()
         return None
@@ -298,8 +281,6 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     total_products = db.query(models.Product).count()
     total_customers = db.query(models.Customer).count()
     total_orders = db.query(models.Order).count()
-    
-    # Fetch products with low stock (quantity < 10)
     low_stock_products = db.query(models.Product).filter(models.Product.quantity < 10).all()
     
     return {

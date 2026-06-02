@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function App() {
-  // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Core Data State
   const [stats, setStats] = useState({
     total_products: 0,
     total_customers: 0,
@@ -17,40 +15,31 @@ function App() {
   const [customers, setCustomers] = useState([]);
   const [orders, setOrders] = useState([]);
 
-  // UI States
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState(null);
   const [globalSuccess, setGlobalSuccess] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modals & Form States
-  // 1. Product Modal (Add / Edit)
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [productForm, setProductForm] = useState({ name: '', sku: '', price: '', quantity: '' });
   const [productFormErrors, setProductFormErrors] = useState({});
 
-  // 2. Customer Modal (Add)
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerForm, setCustomerForm] = useState({ name: '', email: '', phone: '' });
   const [customerFormErrors, setCustomerFormErrors] = useState({});
-
-  // 3. Order Modal (Create Order)
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [orderCustomerId, setOrderCustomerId] = useState('');
   const [orderItems, setOrderItems] = useState([{ product_id: '', quantity: 1 }]);
   const [orderFormErrors, setOrderFormErrors] = useState({});
 
-  // 4. Order Details Modal (View)
   const [orderDetailsModalOpen, setOrderDetailsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // 5. Delete Confirmations
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteType, setDeleteType] = useState(''); // 'product' | 'customer' | 'order'
+  const [deleteType, setDeleteType] = useState('');
   const [idToDelete, setIdToDelete] = useState(null);
 
-  // Fetch all data
   const fetchData = async () => {
     setLoading(true);
     setGlobalError(null);
@@ -77,7 +66,6 @@ function App() {
     fetchData();
   }, []);
 
-  // Show auto-dismiss alerts
   const showSuccess = (msg) => {
     setGlobalSuccess(msg);
     setTimeout(() => setGlobalSuccess(null), 4000);
@@ -88,7 +76,6 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Product Handlers
   const openAddProduct = () => {
     setEditingProduct(null);
     setProductForm({ name: '', sku: '', price: '', quantity: '' });
@@ -110,7 +97,6 @@ function App() {
 
   const handleProductSubmit = async (e) => {
     e.preventDefault();
-    // Validate
     const errors = {};
     if (!productForm.name.trim()) errors.name = 'Product name is required';
     if (!productForm.sku.trim()) errors.sku = 'SKU is required';
@@ -156,7 +142,6 @@ function App() {
     }
   };
 
-  // Customer Handlers
   const openAddCustomer = () => {
     setCustomerForm({ name: '', email: '', phone: '' });
     setCustomerFormErrors({});
@@ -165,10 +150,9 @@ function App() {
 
   const handleCustomerSubmit = async (e) => {
     e.preventDefault();
-    // Validate
     const errors = {};
     if (!customerForm.name.trim()) errors.name = 'Full name is required';
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!customerForm.email.trim()) errors.email = 'Email address is required';
     else if (!emailRegex.test(customerForm.email)) errors.email = 'Enter a valid email address';
@@ -201,7 +185,6 @@ function App() {
     }
   };
 
-  // Order Handlers
   const openCreateOrder = () => {
     if (customers.length === 0) {
       showError('Please add at least one customer before creating an order.');
@@ -253,12 +236,10 @@ function App() {
     const errors = {};
     if (!orderCustomerId) errors.customer_id = 'Please select a customer';
 
-    // Verify items
     const filteredItems = orderItems.filter(item => item.product_id !== '');
     if (filteredItems.length === 0) {
       errors.items = 'Please select at least one product';
     } else {
-      // Validate quantities and stock levels
       const itemErrors = [];
       const seenProducts = new Set();
 
@@ -324,7 +305,6 @@ function App() {
     setOrderDetailsModalOpen(true);
   };
 
-  // Delete Actions
   const triggerDelete = (type, id) => {
     setDeleteType(type);
     setIdToDelete(id);
@@ -344,7 +324,7 @@ function App() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.detail || `Failed to cancel or delete ${deleteType}.`);
       }
-      
+
       showSuccess(`Successfully deleted the selected ${deleteType}.`);
       fetchData();
     } catch (err) {
@@ -352,27 +332,25 @@ function App() {
     }
   };
 
-  // Filters for Search Query
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredCustomers = customers.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredOrders = orders.filter(o => {
     const custName = o.customer?.name || '';
     const orderIdStr = o.id.toString();
-    return custName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           orderIdStr.includes(searchQuery);
+    return custName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      orderIdStr.includes(searchQuery);
   });
 
   return (
     <div className="app-container">
-      {/* Side Bar */}
       <aside className="sidebar">
         <div className="logo-container">
           <span className="logo-icon">📦</span>
@@ -380,25 +358,25 @@ function App() {
         </div>
         <nav>
           <ul className="nav-menu">
-            <li 
+            <li
               className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => { setActiveTab('dashboard'); setSearchQuery(''); }}
             >
               <span>📊</span> Dashboard
             </li>
-            <li 
+            <li
               className={`nav-item ${activeTab === 'products' ? 'active' : ''}`}
               onClick={() => { setActiveTab('products'); setSearchQuery(''); }}
             >
               <span>📦</span> Products
             </li>
-            <li 
+            <li
               className={`nav-item ${activeTab === 'customers' ? 'active' : ''}`}
               onClick={() => { setActiveTab('customers'); setSearchQuery(''); }}
             >
               <span>👥</span> Customers
             </li>
-            <li 
+            <li
               className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`}
               onClick={() => { setActiveTab('orders'); setSearchQuery(''); }}
             >
@@ -408,10 +386,8 @@ function App() {
         </nav>
       </aside>
 
-      {/* Main Content Pane */}
       <main className="main-content">
-        
-        {/* Banner Messages */}
+
         {globalError && (
           <div className="alert alert-danger">
             <span>⚠️ {globalError}</span>
@@ -476,7 +452,7 @@ function App() {
                   <h2 className="panel-title" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ color: 'var(--danger)' }}>⚠️</span> Critical Low Stock Items
                   </h2>
-                  
+
                   {stats.low_stock_products.length === 0 ? (
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                       All systems green. No products are currently below the critical threshold of 10 items.
@@ -532,9 +508,9 @@ function App() {
                   <div className="controls-row">
                     <div className="search-input-wrapper">
                       <span className="search-icon">🔍</span>
-                      <input 
-                        type="text" 
-                        placeholder="Search SKU or Name..." 
+                      <input
+                        type="text"
+                        placeholder="Search SKU or Name..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="search-input"
@@ -604,9 +580,9 @@ function App() {
                   <div className="controls-row">
                     <div className="search-input-wrapper">
                       <span className="search-icon">🔍</span>
-                      <input 
-                        type="text" 
-                        placeholder="Search Name or Email..." 
+                      <input
+                        type="text"
+                        placeholder="Search Name or Email..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="search-input"
@@ -667,9 +643,9 @@ function App() {
                   <div className="controls-row">
                     <div className="search-input-wrapper">
                       <span className="search-icon">🔍</span>
-                      <input 
-                        type="text" 
-                        placeholder="Search Customer or Order ID..." 
+                      <input
+                        type="text"
+                        placeholder="Search Customer or Order ID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="search-input"
@@ -742,9 +718,9 @@ function App() {
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Product Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Mechanical Keyboard" 
+                  <input
+                    type="text"
+                    placeholder="e.g. Mechanical Keyboard"
                     value={productForm.name}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                     className="form-input"
@@ -754,9 +730,9 @@ function App() {
 
                 <div className="form-group">
                   <label className="form-label">SKU / Code</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. KB-MECH-87" 
+                  <input
+                    type="text"
+                    placeholder="e.g. KB-MECH-87"
                     value={productForm.sku}
                     onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
                     className="form-input"
@@ -768,10 +744,10 @@ function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">Price ($)</label>
-                    <input 
-                      type="number" 
-                      step="0.01" 
-                      placeholder="0.00" 
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
                       value={productForm.price}
                       onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                       className="form-input"
@@ -781,9 +757,9 @@ function App() {
 
                   <div className="form-group">
                     <label className="form-label">Quantity in Stock</label>
-                    <input 
-                      type="number" 
-                      placeholder="0" 
+                    <input
+                      type="number"
+                      placeholder="0"
                       value={productForm.quantity}
                       onChange={(e) => setProductForm({ ...productForm, quantity: e.target.value })}
                       className="form-input"
@@ -813,9 +789,9 @@ function App() {
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Full Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. John Doe" 
+                  <input
+                    type="text"
+                    placeholder="e.g. John Doe"
                     value={customerForm.name}
                     onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })}
                     className="form-input"
@@ -825,9 +801,9 @@ function App() {
 
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. john.doe@example.com" 
+                  <input
+                    type="text"
+                    placeholder="e.g. john.doe@example.com"
                     value={customerForm.email}
                     onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })}
                     className="form-input"
@@ -837,9 +813,9 @@ function App() {
 
                 <div className="form-group">
                   <label className="form-label">Phone Contact</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. +1 (555) 123-4567" 
+                  <input
+                    type="text"
+                    placeholder="e.g. +1 (555) 123-4567"
                     value={customerForm.phone}
                     onChange={(e) => setCustomerForm({ ...customerForm, phone: e.target.value })}
                     className="form-input"
@@ -866,11 +842,11 @@ function App() {
             </div>
             <form onSubmit={handleOrderSubmit}>
               <div className="modal-body">
-                
+
                 {/* Customer Selector */}
                 <div className="form-group">
                   <label className="form-label">Customer Profile</label>
-                  <select 
+                  <select
                     value={orderCustomerId}
                     onChange={(e) => setOrderCustomerId(e.target.value)}
                     className="form-input"
@@ -907,7 +883,7 @@ function App() {
                         return (
                           <tr key={idx}>
                             <td>
-                              <select 
+                              <select
                                 value={item.product_id}
                                 onChange={(e) => handleOrderItemChange(idx, 'product_id', e.target.value)}
                                 className="form-input"
@@ -927,9 +903,9 @@ function App() {
                               </span>
                             </td>
                             <td>
-                              <input 
-                                type="number" 
-                                min="1" 
+                              <input
+                                type="number"
+                                min="1"
                                 value={item.quantity}
                                 onChange={(e) => handleOrderItemChange(idx, 'quantity', e.target.value)}
                                 className="form-input"
@@ -937,10 +913,10 @@ function App() {
                               />
                             </td>
                             <td style={{ textAlign: 'right' }}>
-                              <button 
-                                type="button" 
-                                className="btn btn-danger btn-sm" 
-                                style={{ padding: '0.3rem 0.5rem' }} 
+                              <button
+                                type="button"
+                                className="btn btn-danger btn-sm"
+                                style={{ padding: '0.3rem 0.5rem' }}
                                 disabled={orderItems.length === 1}
                                 onClick={() => handleRemoveOrderItemRow(idx)}
                               >
@@ -968,7 +944,7 @@ function App() {
                   <span className="total-amount-display">Total: ${calculateOrderTotal().toFixed(2)}</span>
                 </div>
               </div>
-              
+
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setOrderModalOpen(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Process Order</button>
@@ -1048,7 +1024,7 @@ function App() {
             </div>
             <div className="modal-body">
               <p style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
-                Are you absolutely sure you want to delete or cancel this <strong>{deleteType}</strong>? 
+                Are you absolutely sure you want to delete or cancel this <strong>{deleteType}</strong>?
               </p>
               {deleteType === 'order' && (
                 <p style={{ fontSize: '0.8rem', color: 'var(--warning)', marginTop: '0.5rem' }}>
